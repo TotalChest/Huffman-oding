@@ -1,2 +1,2 @@
-# Huffman-oding
+# HuffmanCoding
 Huffman сompression сode
