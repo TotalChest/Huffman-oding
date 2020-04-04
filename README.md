@@ -10,5 +10,5 @@ $ ./encode <input_file>  # 'code' and 'table' will appear in the current directo
 ### Decode:
 ```bash
 $ g++ decode.cpp -o decode
-$ ./encode <code> <table> <output_file>
+$ ./decode <code> <table> <output_file>
 ```
