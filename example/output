@@ -1,0 +1,361 @@
+In computer science and information theory, a Huffman code is a particular type of optimal prefix code that is commonly used for lossless data compression. The process of finding or using such a code proceeds by means of Huffman coding, an algorithm developed by David A. Huffman while he was a Sc.D. student at MIT, and published in the 1952 paper "A Method for the Construction of Minimum-Redundancy Codes".[1]
+
+The output from Huffman's algorithm can be viewed as a variable-length code table for encoding a source symbol (such as a character in a file). The algorithm derives this table from the estimated probability or frequency of occurrence (weight) for each possible value of the source symbol. As in other entropy encoding methods, more common symbols are generally represented using fewer bits than less common symbols. Huffman's method can be efficiently implemented, finding a code in time linear to the number of input weights if these weights are sorted.[2] However, although optimal among methods encoding symbols separately, Huffman coding is not always optimal among all compression methods - it is replaced with arithmetic coding or asymmetric numeral systems if better compression ratio is required.
+
+In 1951, David A. Huffman and his MIT information theory classmates were given the choice of a term paper or a final exam. The professor, Robert M. Fano, assigned a term paper on the problem of finding the most efficient binary code. Huffman, unable to prove any codes were the most efficient, was about to give up and start studying for the final when he hit upon the idea of using a frequency-sorted binary tree and quickly proved this method the most efficient.[3]
+
+In doing so, Huffman outdid Fano, who had worked with information theory inventor Claude Shannon to develop a similar code. Building the tree from the bottom up guaranteed optimality, unlike top-down Shannon–Fano coding.
+
+Huffman coding uses a specific method for choosing the representation for each symbol, resulting in a prefix code (sometimes called "prefix-free codes", that is, the bit string representing some particular symbol is never a prefix of the bit string representing any other symbol). Huffman coding is such a widespread method for creating prefix codes that the term "Huffman code" is widely used as a synonym for "prefix code" even when such a code is not produced by Huffman's algorithm.
+
+Huffman coding uses a specific method for choosing the representation for each symbol, resulting in a prefix code (sometimes called "prefix-free codes", that is, the bit string representing some particular symbol is never a prefix of the bit string representing any other symbol). Huffman coding is such a widespread method for creating prefix codes that the term "Huffman code" is widely used as a synonym for "prefix code" even when such a code is not produced by Huffman's algorithm.
+
+For any code that is biunique, meaning that the code is uniquely decodeable, the sum of the probability budgets across all symbols is always less than or equal to one. In this example, the sum is strictly equal to one; as a result, the code is termed a complete code. If this is not the case, you can always derive an equivalent code by adding extra symbols (with associated null probabilities), to make the code complete while keeping it biunique.
+
+As a consequence of Shannon's source coding theorem, the entropy is a measure of the smallest codeword length that is theoretically possible for the given alphabet with associated weights. In this example, the weighted average codeword length is 2.25 bits per symbol, only slightly larger than the calculated entropy of 2.205 bits per symbol. So not only is this code optimal in the sense that no other feasible code performs better, but it is very close to the theoretical limit established by Shannon.
+
+In general, a Huffman code need not be unique. Thus the set of Huffman codes for a given probability distribution is a non-empty subset of the codes minimizing {\displaystyle L(C)}L(C) for that probability distribution. (However, for each minimizing codeword length assignment, there exists at least one Huffman code with those lengths.)
+
+The technique works by creating a binary tree of nodes. These can be stored in a regular array, the size of which depends on the number of symbols, {\displaystyle n}n. A node can be either a leaf node or an internal node. Initially, all nodes are leaf nodes, which contain the symbol itself, the weight (frequency of appearance) of the symbol and optionally, a link to a parent node which makes it easy to read the code (in reverse) starting from a leaf node. Internal nodes contain a weight, links to two child nodes and an optional link to a parent node. As a common convention, bit '0' represents following the left child and bit '1' represents following the right child. A finished tree has up to {\displaystyle n}n leaf nodes and {\displaystyle n-1}n-1 internal nodes. A Huffman tree that omits unused symbols produces the most optimal code lengths.
+
+The process begins with the leaf nodes containing the probabilities of the symbol they represent. Then, the process takes the two nodes with smallest probability, and creates a new internal node having these two nodes as children. The weight of the new node is set to the sum of the weight of the children. We then apply the process again, on the new internal node and on the remaining nodes (i.e., we exclude the two leaf nodes), we repeat this process until only one node remains, which is the root of the Huffman tree.
+
+The simplest construction algorithm uses a priority queue where the node with lowest probability is given highest priority:
+
+Create a leaf node for each symbol and add it to the priority queue.
+While there is more than one node in the queue:
+Remove the two nodes of highest priority (lowest probability) from the queue
+Create a new internal node with these two nodes as children and with probability equal to the sum of the two nodes' probabilities.
+Add the new node to the queue.
+The remaining node is the root node and the tree is complete.
+Since efficient priority queue data structures require O(log n) time per insertion, and a tree with n leaves has 2n−1 nodes, this algorithm operates in O(n log n) time, where n is the number of symbols.
+
+If the symbols are sorted by probability, there is a linear-time (O(n)) method to create a Huffman tree using two queues, the first one containing the initial weights (along with pointers to the associated leaves), and combined weights (along with pointers to the trees) being put in the back of the second queue. This assures that the lowest weight is always kept at the front of one of the two queues:
+
+Start with as many leaves as there are symbols.
+Enqueue all leaf nodes into the first queue (by probability in increasing order so that the least likely item is in the head of the queue).
+While there is more than one node in the queues:
+Dequeue the two nodes with the lowest weight by examining the fronts of both queues.
+Create a new internal node, with the two just-removed nodes as children (either node can be either child) and the sum of their weights as the new weight.
+Enqueue the new node into the rear of the second queue.
+The remaining node is the root node; the tree has now been generated.
+In many cases, time complexity is not very important in the choice of algorithm here, since n here is the number of symbols in the alphabet, which is typically a very small number (compared to the length of the message to be encoded); whereas complexity analysis concerns the behavior when n grows to be very large.
+
+It is generally beneficial to minimize the variance of codeword length. For example, a communication buffer receiving Huffman-encoded data may need to be larger to deal with especially long symbols if the tree is especially unbalanced. To minimize variance, simply break ties between queues by choosing the item in the first queue. This modification will retain the mathematical optimality of the Huffman coding while both minimizing variance and minimizing the length of the longest character code.
+
+Generally speaking, the process of decompression is simply a matter of translating the stream of prefix codes to individual byte values, usually by traversing the Huffman tree node by node as each bit is read from the input stream (reaching a leaf node necessarily terminates the search for that particular byte value). Before this can take place, however, the Huffman tree must be somehow reconstructed. In the simplest case, where character frequencies are fairly predictable, the tree can be preconstructed (and even statistically adjusted on each compression cycle) and thus reused every time, at the expense of at least some measure of compression efficiency. Otherwise, the information to reconstruct the tree must be sent a priori. A naive approach might be to prepend the frequency count of each character to the compression stream. Unfortunately, the overhead in such a case could amount to several kilobytes, so this method has little practical use. If the data is compressed using canonical encoding, the compression model can be precisely reconstructed with just {\displaystyle B2^{B}}B2^{B} bits of information (where {\displaystyle B}B is the number of bits per symbol). Another method is to simply prepend the Huffman tree, bit by bit, to the output stream. For example, assuming that the value of 0 represents a parent node and 1 a leaf node, whenever the latter is encountered the tree building routine simply reads the next 8 bits to determine the character value of that particular leaf. The process continues recursively until the last leaf node is reached; at that point, the Huffman tree will thus be faithfully reconstructed. The overhead using such a method ranges from roughly 2 to 320 bytes (assuming an 8-bit alphabet). Many other techniques are possible as well. In any case, since the compressed data can include unused "trailing bits" the decompressor must be able to determine when to stop producing output. This can be accomplished by either transmitting the length of the decompressed data along with the compression model or by defining a special code symbol to signify the end of input (the latter method can adversely affect code length optimality, however).
+
+Main properties
+The probabilities used can be generic ones for the application domain that are based on average experience, or they can be the actual frequencies found in the text being compressed. This requires that a frequency table must be stored with the compressed text. See the Decompression section above for more information about the various techniques employed for this purpose.
+
+Huffman's original algorithm is optimal for a symbol-by-symbol coding with a known input probability distribution, i.e., separately encoding unrelated symbols in such a data stream. However, it is not optimal when the symbol-by-symbol restriction is dropped, or when the probability mass functions are unknown. Also, if symbols are not independent and identically distributed, a single code may be insufficient for optimality. Other methods such as arithmetic coding often have better compression capability.
+
+Although both aforementioned methods can combine an arbitrary number of symbols for more efficient coding and generally adapt to the actual input statistics, arithmetic coding does so without significantly increasing its computational or algorithmic complexities (though the simplest version is slower and more complex than Huffman coding). Such flexibility is especially useful when input probabilities are not precisely known or vary significantly within the stream. However, Huffman coding is usually faster and arithmetic coding was historically a subject of some concern over patent issues. Thus many technologies have historically avoided arithmetic coding in favor of Huffman and other prefix coding techniques. As of mid-2010, the most commonly used techniques for this alternative to Huffman coding have passed into the public domain as the early patents have expired.
+
+For a set of symbols with a uniform probability distribution and a number of members which is a power of two, Huffman coding is equivalent to simple binary block encoding, e.g., ASCII coding. This reflects the fact that compression is not possible with such an input, no matter what the compression method, i.e., doing nothing to the data is the optimal thing to do.
+
+Huffman coding is optimal among all methods in any case where each input symbol is a known independent and identically distributed random variable having a probability that is dyadic. Prefix codes, and thus Huffman coding in particular, tend to have inefficiency on small alphabets, where probabilities often fall between these optimal (dyadic) points. The worst case for Huffman coding can happen when the probability of the most likely symbol far exceeds 2−1 = 0.5, making the upper limit of inefficiency unbounded.
+
+There are two related approaches for getting around this particular inefficiency while still using Huffman coding. Combining a fixed number of symbols together ("blocking") often increases (and never decreases) compression. As the size of the block approaches infinity, Huffman coding theoretically approaches the entropy limit, i.e., optimal compression[citation needed]. However, blocking arbitrarily large groups of symbols is impractical, as the complexity of a Huffman code is linear in the number of possibilities to be encoded, a number that is exponential in the size of a block. This limits the amount of blocking that is done in practice.
+
+A practical alternative, in widespread use, is run-length encoding. This technique adds one step in advance of entropy coding, specifically counting (runs) of repeated symbols, which are then encoded. For the simple case of Bernoulli processes, Golomb coding is optimal among prefix codes for coding run length, a fact proved via the techniques of Huffman coding.[4] A similar approach is taken by fax machines using modified Huffman coding. However, run-length coding is not as adaptable to as many input types as other compression technologies.
+
+Many variations of Huffman coding exist,[5] some of which use a Huffman-like algorithm, and others of which find optimal prefix codes (while, for example, putting different restrictions on the output). Note that, in the latter case, the method need not be Huffman-like, and, indeed, need not even be polynomial time.
+
+n-ary Huffman coding
+The n-ary Huffman algorithm uses the {0, 1, ... , n − 1} alphabet to encode message and build an n-ary tree. This approach was considered by Huffman in his original paper. The same algorithm applies as for binary (n equals 2) codes, except that the n least probable symbols are taken together, instead of just the 2 least probable. Note that for n greater than 2, not all sets of source words can properly form an n-ary tree for Huffman coding. In these cases, additional 0-probability place holders must be added. This is because the tree must form an n to 1 contractor; for binary coding, this is a 2 to 1 contractor, and any sized set can form such a contractor. If the number of source words is congruent to 1 modulo n-1, then the set of source words will form a proper Huffman tree.
+
+Adaptive Huffman coding
+A variation called adaptive Huffman coding involves calculating the probabilities dynamically based on recent actual frequencies in the sequence of source symbols, and changing the coding tree structure to match the updated probability estimates. It is used rarely in practice, since the cost of updating the tree makes it slower than optimized adaptive arithmetic coding, which is more flexible and has better compression.
+
+Huffman template algorithm
+Most often, the weights used in implementations of Huffman coding represent numeric probabilities, but the algorithm given above does not require this; it requires only that the weights form a totally ordered commutative monoid, meaning a way to order weights and to add them. The Huffman template algorithm enables one to use any kind of weights (costs, frequencies, pairs of weights, non-numerical weights) and one of many combining methods (not just addition). Such algorithms can solve other minimization problems, such as minimizing {\displaystyle \max _{i}\left[w_{i}+\mathrm {length} \left(c_{i}\right)\right]}\max _{i}\left[w_{i}+\mathrm {length} \left(c_{i}\right)\right], a problem first applied to circuit design.
+
+Length-limited Huffman coding/minimum variance Huffman coding
+Length-limited Huffman coding is a variant where the goal is still to achieve a minimum weighted path length, but there is an additional restriction that the length of each codeword must be less than a given constant. The package-merge algorithm solves this problem with a simple greedy approach very similar to that used by Huffman's algorithm. Its time complexity is {\displaystyle O(nL)}O(nL), where {\displaystyle L}L is the maximum length of a codeword. No algorithm is known to solve this problem in {\displaystyle O(n)}O(n) or {\displaystyle O(n\log n)}O(n\log n) time, unlike the presorted and unsorted conventional Huffman problems, respectively.
+
+Huffman coding with unequal letter costs
+In the standard Huffman coding problem, it is assumed that each symbol in the set that the code words are constructed from has an equal cost to transmit: a code word whose length is N digits will always have a cost of N, no matter how many of those digits are 0s, how many are 1s, etc. When working under this assumption, minimizing the total cost of the message and minimizing the total number of digits are the same thing.
+
+Huffman coding with unequal letter costs is the generalization without this assumption: the letters of the encoding alphabet may have non-uniform lengths, due to characteristics of the transmission medium. An example is the encoding alphabet of Morse code, where a 'dash' takes longer to send than a 'dot', and therefore the cost of a dash in transmission time is higher. The goal is still to minimize the weighted average codeword length, but it is no longer sufficient just to minimize the number of symbols used by the message. No algorithm is known to solve this in the same manner or with the same efficiency as conventional Huffman coding, though it has been solved by Karp whose solution has been refined for the case of integer costs by Golin.
+
+Optimal alphabetic binary trees (Hu–Tucker coding)
+In the standard Huffman coding problem, it is assumed that any codeword can correspond to any input symbol. In the alphabetic version, the alphabetic order of inputs and outputs must be identical. Thus, for example, {\displaystyle A=\left\{a,b,c\right\}}A=\left\{a,b,c\right\} could not be assigned code {\displaystyle H\left(A,C\right)=\left\{00,1,01\right\}}H\left(A,C\right)=\left\{00,1,01\right\}, but instead should be assigned either {\displaystyle H\left(A,C\right)=\left\{00,01,1\right\}}H\left(A,C\right)=\left\{00,01,1\right\} or {\displaystyle H\left(A,C\right)=\left\{0,10,11\right\}}H\left(A,C\right)=\left\{0,10,11\right\}. This is also known as the Hu–Tucker problem, after T. C. Hu and Alan Tucker, the authors of the paper presenting the first {\displaystyle O(n\log n)}O(n\log n)-time solution to this optimal binary alphabetic problem,[6] which has some similarities to Huffman algorithm, but is not a variation of this algorithm. A later method, the Garsia–Wachs algorithm of Adriano Garsia and Michelle L. Wachs (1977), uses simpler logic to perform the same comparisons in the same total time bound. These optimal alphabetic binary trees are often used as binary search trees.[7]
+
+The canonical Huffman code
+Main article: Canonical Huffman code
+If weights corresponding to the alphabetically ordered inputs are in numerical order, the Huffman code has the same lengths as the optimal alphabetic code, which can be found from calculating these lengths, rendering Hu–Tucker coding unnecessary. The code resulting from numerically (re-)ordered input is sometimes called the canonical Huffman code and is often the code used in practice, due to ease of encoding/decoding. The technique for finding this code is sometimes called Huffman–Shannon–Fano coding, since it is optimal like Huffman coding, but alphabetic in weight probability, like Shannon–Fano coding. The Huffman–Shannon–Fano code corresponding to the example is {\displaystyle \{000,001,01,10,11\}}\{000,001,01,10,11\}, which, having the same codeword lengths as the original solution, is also optimal. But in canonical Huffman code, the result is {\displaystyle \{110,111,00,01,10\}}\{110,111,00,01,10\}.
+
+Arithmetic coding and Huffman coding produce equivalent results — achieving entropy — when every symbol has a probability of the form 1/2k. In other circumstances, arithmetic coding can offer better compression than Huffman coding because — intuitively — its "code words" can have effectively non-integer bit lengths, whereas code words in prefix codes such as Huffman codes can only have an integer number of bits. Therefore, a code word of length k only optimally matches a symbol of probability 1/2k and other probabilities are not represented optimally; whereas the code word length in arithmetic coding can be made to exactly match the true probability of the symbol. This difference is especially striking for small alphabet sizes.
+
+Prefix codes nevertheless remain in wide use because of their simplicity, high speed, and lack of patent coverage. They are often used as a "back-end" to other compression methods. DEFLATE (PKZIP's algorithm) and multimedia codecs such as JPEG and MP3 have a front-end model and quantization followed by the use of prefix codes; these are often called "Huffman codes" even though most applications use pre-defined variable-length codes rather than codes designed using Huffman's algorithm.
+
+Huffman Coding | Greedy Algo-3
+Prefix Codes, means the codes (bit sequences) are assigned in such a way that the code assigned to one character is not the prefix of code assigned to any other character. This is how Huffman Coding makes sure that there is no ambiguity when decoding the generated bitstream.
+Let us understand prefix codes with a counter example. Let there be four characters a, b, c and d, and their corresponding variable length codes be 00, 01, 0 and 1. This coding leads to ambiguity because code assigned to c is the prefix of codes assigned to a and b. If the compressed bit stream is 0001, the de-compressed output may be “cccd” or “ccb” or “acd” or “ab”.
+See this for applications of Huffman Coding.
+
+There are mainly two major parts in Huffman Coding
+1) Build a Huffman Tree from input characters.
+2) Traverse the Huffman Tree and assign codes to characters.
+
+Steps to build Huffman Tree
+Input is an array of unique characters along with their frequency of occurrences and output is Huffman Tree.
+
+1. Create a leaf node for each unique character and build a min heap of all leaf nodes (Min Heap is used as a priority queue. The value of frequency field is used to compare two nodes in min heap. Initially, the least frequent character is at root)
+
+2. Extract two nodes with the minimum frequency from the min heap.
+
+3. Create a new internal node with a frequency equal to the sum of the two nodes frequencies. Make the first extracted node as its left child and the other extracted node as its right child. Add this node to the min heap.
+
+4. Repeat steps#2 and #3 until the heap contains only one node. The remaining node is the root node and the tree is complete.
+
+Let us understand the algorithm with an example:
+
+Step 1. Build a min heap that contains 6 nodes where each node represents root of a tree with single node.
+
+Step 2 Extract two minimum frequency nodes from min heap. Add a new internal node with frequency 5 + 9 = 14.
+
+Now min heap contains 5 nodes where 4 nodes are roots of trees with single element each, and one heap node is root of tree with 3 elements
+
+Step 3: Extract two minimum frequency nodes from heap. Add a new internal node with frequency 12 + 13 = 25
+
+Now min heap contains 4 nodes where 2 nodes are roots of trees with single element each, and two heap nodes are root of tree with more than one nodes.
+
+character           Frequency
+Internal Node          14
+       e               16
+Internal Node          25
+       f               45
+Step 4: Extract two minimum frequency nodes. Add a new internal node with frequency 14 + 16 = 30
+
+Now min heap contains 3 nodes.
+
+character          Frequency
+Internal Node         25
+Internal Node         30
+      f               45 
+Step 5: Extract two minimum frequency nodes. Add a new internal node with frequency 25 + 30 = 55
+
+Now min heap contains 2 nodes.
+
+character     Frequency
+       f         45
+Internal Node    55
+Step 6: Extract two minimum frequency nodes. Add a new internal node with frequency 45 + 55 = 100
+
+Now min heap contains only one node.
+
+character      Frequency
+Internal Node    100
+Since the heap contains only one node, the algorithm stops here.
+
+Steps to print codes from Huffman Tree:
+Traverse the tree formed starting from the root. Maintain an auxiliary array. While moving to the left child, write 0 to the array. While moving to the right child, write 1 to the array. Print the array when a leaf node is encountered.
+
+The codes are as follows:
+
+Huffman Coding: A CS2 Assignment
+From ASCII Coding to Huffman Coding
+Many programming languages use ASCII coding for characters (ASCII stands for American Standard Code for Information Interchange). Some recent languages, e.g., Java, use UNICODE which, because it can encode a bigger set of characters, is more useful for languages like Japanese and Chinese which have a larger set of characters than are used in English.
+
+We'll use ASCII encoding of characters as an example. In ASCII, every character is encoded with the same number of bits: 8 bits per character. Since there are 256 different values that can be encoded with 8 bits, there are potentially 256 different characters in the ASCII character set -- note that 28 = 256. The common characters, e.g., alphanumeric characters, punctuation, control characters, etc., use only 7 bits; there are 128 different characters that can be encoded with 7 bits. In C++ for example, the type char is divided into subtypes unsigned-char and (the default signed) char. As we'll see, Huffman coding compresses data by using fewer bits to encode more frequently occurring characters so that not all characters are encoded with 8 bits. In Java there are no unsigned types and char values use 16 bits (Unicode compared to ASCII). Substantial compression results regardless of the character-encoding used by a language or platform.
+
+A Simple Coding Example
+We'll look at how the string "go go gophers" is encoded in ASCII, how we might save bits using a simpler coding scheme, and how Huffman coding is used to compress the data resulting in still more savings.
+
+With an ASCII encoding (8 bits per character) the 13 character string "go go gophers" requires 104 bits. The table below on the left shows how the coding works.
+
+coding a message
+ASCII coding	 	3-bit coding
+char	ASCII	binary
+g	103	1100111
+o	111	1101111
+p	112	1110000
+h	104	1101000
+e	101	1100101
+r	114	1110010
+s	115	1110011
+space	32	1000000
+char	code	binary
+g	0	000
+o	1	001
+p	2	010
+h	3	011
+e	4	100
+r	5	101
+s	6	110
+space	7	111
+The string "go go gophers" would be written (coded numerically) as 103 111 32 103 111 32 103 111 112 104 101 114 115. Although not easily readable by humans, this would be written as the following stream of bits (the spaces would not be written, just the 0's and 1's)
+
+1100111 1101111 1100000 1100111 1101111 1000000 1100111 1101111 1110000 1101000 1100101 1110010 1110011
+
+Since there are only eight different characters in "go go gophers", it's possible to use only 3 bits to encode the different characters. We might, for example, use the encoding in the table on the right above, though other 3-bit encodings are possible.
+
+Now the string "go go gophers" would be encoded as 0 1 7 0 1 7 0 1 2 3 4 5 6 or, as bits:
+
+000 001 111 000 001 111 000 001 010 011 100 101 110 111
+
+By using three bits per character, the string "go go gophers" uses a total of 39 bits instead of 104 bits. More bits can be saved if we use fewer than three bits to encode characters like g, o, and space that occur frequently and more than three bits to encode characters like e, p, h, r, and s that occur less frequently in "go go gophers". This is the basic idea behind Huffman coding: to use fewer bits for more frequently occurring characters. We'll see how this is done using a tree that stores characters at the leaves, and whose root-to-leaf paths provide the bit sequence used to encode the characters.
+
+Towards a Coding Tree
+A tree view of the ASCII character set
+Using a tree (actually a binary trie, more on that later) all characters are stored at the leaves of a complete tree. In the diagram to the right, the tree has eight levels meaning that the root-to-leaf path always has seven edges. A left-edge (black in the diagram) is numbered 0, a right-edge (blue in the diagram) is numbered 1. The ASCII code for any character/leaf is obtained by following the root-to-leaf path and catening the 0's and 1's. For example, the character 'a', which has ASCII value 97 (1100001 in binary), is shown with root-to-leaf path of right-right-left-left-left-left-right.
+
+*
+The structure of the tree can be used to determine the coding of any leaf by using the 0/1 edge convention described. If we use a different tree, we get a different coding. As an example, the tree below on the right yields the coding shown on the left.
+
+char	binary
+'g'	10
+'o'	11
+'p'	0100
+'h'	0101
+'e'	0110
+'r'	0111
+'s'	000
+'  '	001
+*
+Using this coding, "go go gophers" is encoded (spaces wouldn't appear in the bitstream) as:
+
+10 11 001 10 11 001 10 11 0100 0101 0110 0111 000
+
+This is a total of 37 bits, which saves two bits from the encoding in which each of the 8 characters has a 3-bit encoding that is shown above! The bits are saved by coding frequently occurring characters like 'g' and 'o' with fewer bits (here two bits) than characters that occur less frequently like 'p', 'h', 'e', and 'r'.
+
+The character-encoding induced by the tree can be used to decode a stream of bits as well as encode a string into a stream of bits. You can try to decode the following bitstream; the answer with an explanation follows:
+
+01010110011100100001000101011001110110001101101100000010101 011001110110
+
+To decode the stream, start at the root of the encoding tree, and follow a left-branch for a 0, a right branch for a 1. When you reach a leaf, write the character stored at the leaf, and start again at the top of the tree. To start, the bits are 010101100111. This yields left-right-left-right to the letter 'h', followed (starting again at the root) with left-right-right-left to the letter 'e', followed by left-right-right-right to the letter 'r'. Continuing until all the bits are processed yields
+
+her sphere goes here
+Prefix codes and Huffman Codes
+When all characters are stored in leaves, and every interior/(non-leaf) node has two children, the coding induced by the 0/1 convention outlined above has what is called the prefix property: no bit-sequence encoding of a character is the prefix of any other bit-sequence encoding. This makes it possible to decode a bitstream using the coding tree by following root-to-leaf paths. The tree shown above for "go go gophers" is an optimal tree: there are no other trees with the same characters that use fewer bits to encode the string "go go gophers". There are other trees that use 37 bits; for example you can simply swap any sibling nodes and get a different encoding that uses the same number of bits. We need an algorithm for constructing an optimal tree which in turn yields a minimal per-character encoding/compression. This algorithm is called Huffman coding, and was invented by D. Huffman in 1952. It is an example of a greedy algorithm.
+
+Huffman Coding
+We'll use Huffman's algorithm to construct a tree that is used for data compression. In the previous section we saw examples of how a stream of bits can be generated from an encoding, e.g., how "go go gophers" was written as 1011001101100110110100010101100111000. We also saw how the tree can be used to decode a stream of bits. We'll discuss how to construct the tree here.
+
+We'll assume that each character has an associated weight equal to the number of times the character occurs in a file, for example. In the "go go gophers" example, the characters 'g' and 'o' have weight 3, the space has weight 2, and the other characters have weight 1. When compressing a file we'll need to calculate these weights, we'll ignore this step for now and assume that all character weights have been calculated. Huffman's algorithm assumes that we're building a single tree from a group (or forest) of trees. Initially, all the trees have a single node with a character and the character's weight. Trees are combined by picking two trees, and making a new tree from the two trees. This decreases the number of trees by one at each step since two trees are combined into one tree. The algorithm is as follows:
+
+Begin with a forest of trees. All trees are one node, with the weight of the tree equal to the weight of the character in the node. Characters that occur most frequently have the highest weights. Characters that occur least frequently have the smallest weights.
+Repeat this step until there is only one tree:
+
+Choose two trees with the smallest weights, call these trees T1 and T2. Create a new tree whose root has a weight equal to the sum of the weights T1 + T2 and whose left subtree is T1 and whose right subtree is T2.
+The single tree left after the previous step is an optimal encoding tree.
+We'll use the string "go go gophers" as an example. Initially we have the forest shown below. The nodes are shown with a weight/count that represents the number of times the node's character occurs.
+
+*
+We pick two minimal nodes. There are five nodes with the minimal weight of one, it doesn't matter which two we pick. In a program, the deterministic aspects of the program will dictate which two are chosen, e.g., the first two in an array, or the elements returned by a priority queue implementation. We create a new tree whose root is weighted by the sum of the weights chosen. We now have a forest of seven trees as shown here:
+
+*
+Choosing two minimal trees yields another tree with weight two as shown below. There are now six trees in the forest of trees that will eventually build an encoding tree.
+
+*
+Again we must choose the two trees of minimal weight. The lowest weight is the 'e'-node/tree with weight equal to one. There are three trees with weight two, we can choose any of these to create a new tree whose weight will be three.
+
+*
+Now there are two trees with weight equal to two. These are joined into a new tree whose weight is four. There are four trees left, one whose weight is four and three with a weight of three.
+
+*
+Two minimal (three weight) trees are joined into a tree whose weight is six. In the diagram below we choose the 'g' and 'o' trees (we could have chosen the 'g' tree and the space-'e' tree or the 'o' tree and the space-'e' tree.) There are three trees left.
+
+*
+The minimal trees have weights of three and four, these are joined into a tree whose weight is seven leaving two trees.
+
+*
+Finally, the last two trees are joined into a final tree whose weight is thirteen, the sum of the two weights six and seven. Note that this tree is different from the tree we used to illustrate Huffman coding above, and the bit patterns for each character are different, but the total number of bits used to encode "go go gophers" is the same.
+
+*
+The character encoding induced by the last tree is shown below where again, 0 is used for left edges and 1 for right edges.
+
+char	binary
+'g'	00
+'o'	01
+'p'	1110
+'h'	1101
+'e'	101
+'r'	1111
+'s'	1100
+'  '	100
+The string "go go gophers" would be encoded as shown (with spaces used for easier reading, the spaces wouldn't appear in the real encoding).
+
+00 01 100 00 01 100 00 01 1110 1101 101 1111 1100
+
+Once again, 37 bits are used to encode "go go gophers". There are several trees that yield an optimal 37-bit encoding of "go go gophers". The tree that actually results from a programmed implementation of Huffman's algorithm will be the same each time the program is run for the same weights (assuming no randomness is used in creating the tree).
+
+Why is Huffman Coding Greedy?
+Huffman's algorithm is an example of a greedy algorithm. It's called greedy because the two smallest nodes are chosen at each step, and this local decision results in a globally optimal encoding tree. In general, greedy algorithms use small-grained, or local minimal/maximal choices to result in a global minimum/maximum. Making change using U.S. money is another example of a greedy algorithm.
+
+Problem: give change in U.S. coins for any amount (say under $1.00) using the minimal number of coins.
+
+Solution (assuming coin denominations of $0.25, $0.10, $0.05, and $0.01, called quarters, dimes, nickels, and pennies, respectively): use the highest-value coin that you can, and give as many of these as you can. Repeat the process until the correct change is given.
+
+Example: make change for $0.91. Use 3 quarters (the highest coin we can use, and as many as we can use). This leaves $0.16. To make change use a dime (leaving $0.06), a nickel (leaving $0.01), and a penny. The total change for $0.91 is three quarters, a dime, a nickel, and a penny. This is a total of six coins, it is not possible to make change for $0.91 using fewer coins.
+
+The solution/algorithm is greedy because the largest denomination coin is chosen to use at each step, and as many are used as possible. This locally optimal step leads to a globally optimal solution. Note that the algorithm does not work with different denominations. For example, if there are no nickels, the algorithm will make change for $0.31 using one quarter and six pennies, a total of seven coins. However, it's possible to use three dimes and one penny, a total of four coins. This shows that greedy algorithms are not always optimal algorithms.
+
+Implementing/Programming Huffman Coding
+In this section we'll see the basic programming steps in implementing huffman coding. More details can be found in the language specific descriptions.
+
+There are two parts to an implementation: a compression program and an uncompression/decompression program. You need both to have a useful compression utility. We'll assume these are separate programs, but they share many classes, functions, modules, code or whatever unit-of-programming you're using. We'll call the program that reads a regular file and produces a compressed file the compression or huffing program. The program that does the reverse, producing a regular file from a compressed file, will be called the uncompression or unhuffing program.
+
+The Compression or Huffing Program
+To compress a file (sequence of characters) you need a table of bit encodings, e.g., an ASCII table, or a table giving a sequence of bits that's used to encode each character. This table is constructed from a coding tree using root-to-leaf paths to generate the bit sequence that encodes each character. When you read "table", think array or map or dictionary depending on the programming language you're using.
+
+Assuming you can write a specific number of bits at a time to a file, a compressed file is made using the following top-level steps. These steps will be developed further into sub-steps, and you'll eventually implement a program based on these ideas and sub-steps.
+
+Build a table of per-character encodings. The table may be given to you, e.g., an ASCII table, or you may build the table from a Huffman coding tree. (Remember, think map or array or dictionary.)
+
+Read the file to be compressed (the plain file) and process one character at a time. To process each character find the bit sequence that encodes the character using the table built in the previous step and write this bit sequence to the compressed file.
+
+As an example, we'll use the table below on the left, which is generated from the tree on the right. Ignore the weights on the nodes, we'll use those when we discuss how the tree is created.
+
+Another Huffman Tree/Table Example
+char	binary
+'a'	100
+'r'	101
+'e'	11
+'n'	0001
+'t'	011
+'s'	010
+'o'	0000
+'  '	001
+*
+To compress the string/file "streets are stone stars are not", we read one character at a time and write the sequence of bits that encodes each character. To encode "streets are" we would write the following bits:
+
+   010011101111101101000110010111
+
+The bits would be written in the order 010, 011, 101, 11, 11, 011, 010, 001, 100, 101, 11.
+
+That's the compression program. Two things are missing from the compressed file: (1) some information (called the header) must be written at the beginning of the compressed file that will allow it to be uncompressed; (2) some information must be written at the end of the file that will be used by the uncompression program to tell when the compressed bit sequence is over (this is the bit sequence for the pseudo-eof character described later).
+
+Building the Table for Compression/Huffing
+To build a table of optimal per-character bit sequences you'll need to build a Huffman coding tree using the greedy Huffman algorithm. The table is generated by following every root-to-leaf path and recording the left/right 0/1 edges followed. These paths make the optimal encoding bit sequences for each character.
+
+There are three steps in creating the table:
+
+Count the number of times every character occurs. Use these counts to create an initial forest of one-node trees. Each node has a character and a weight equal to the number of times the character occurs. An example of one node trees shows what the initial forest looks like.
+
+Use the greedy Huffman algorithm to build a single tree. The final tree will be used in the next step.
+
+Follow every root-to-leaf path creating a table of bit sequence encodings for every character/leaf.
+
+Header Information
+You must store some initial information in the compressed file that will be used by the uncompression/unhuffing program. Basically you must store the tree used to compress the original file. This tree is used by the uncompression program.
+
+There are several alternatives for storing the tree. Some are outlined here, you may explore others as part of the specifications of your assignment.
+
+Store the character counts at the beginning of the file. You can store counts for every character, or counts for the non-zero characters. If you do the latter, you must include some method for indicating the character, e.g., store character/count pairs.
+
+You could use a "standard" character frequency, e.g., for any English language text you could assume weights/frequencies for every character and use these in constructing the tree for both compression and uncompression.
+
+You can store the tree at the beginning of the file. One method for doing this is to do a pre-order traversal, writing each node visited. You must differentiate leaf nodes from internal/non-leaf nodes. One way to do this is write a single bit for each node, say 1 for leaf and 0 for non-leaf. For leaf nodes, you will also need to write the character stored. For non-leaf nodes there's no information that needs to be written, just the bit that indicates there's an internal node.
+
+The pseudo-eof character
+When you write output the operating system typically buffers the output for efficiency. This means output is actually written to disk when some internal buffer is full, not every time you write to a stream in a program. Operating systems also typically require that disk files have sizes that are multiples of some architecture/operating system specific unit, e.g., a byte or word. On many systems all file sizes are multiples of 8 or 16 bits so that it isn't possible to have a 122 bit file.
+In particular, it is not possible to write just one single bit to a file, all output is actually done in "chunks", e.g., it might be done in eight-bit chunks. In any case, when you write 3 bits, then 2 bits, then 10 bits, all the bits are eventually written, but you cannot be sure precisely when they're written during the execution of your program. Also, because of buffering, if all output is done in eight-bit chunks and your program writes exactly 61 bits explicitly, then 3 extra bits will be written so that the number of bits written is a multiple of eight. Your decompressing/unhuff program must have some mechanism to account for these extra or "padding" bits since these bits do not represent compressed information.
+
+Your decompression/unhuff program cannot simply read bits until there are no more left since your program might then read the extra padding bits written due to buffering. This means that when reading a compressed file, you CANNOT use code like this.
+
+When a compressed file is written the last bits written should be the bits that correspond to the pseudo-EOF char. You will have to write these bits explicitly. These bits will be recognized by the program unhuff and used in the decompression process. This means that your decompression program will never actually run out of bits if it's processing a properly compressed file (you may need to think about this to really believe it). In other words, when decompressing you will read bits, traverse a tree, and eventually find a leaf-node representing some character. When the pseudo-EOF leaf is found, the program can terminate because all decompression is done. If reading a bit fails because there are no more bits (the bit reading function returns false) the compressed file is not well formed.
+
+Every time a file is compressed the count of the the number of times the pseudo-EOF character occurs should be one --- this should be done explicitly in the code that determines frequency counts. In other words, a pseudo-char EOF with number of occurrences (count) of 1 must be explicitly created and used in creating the tree used for compression.
